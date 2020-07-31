@@ -1,4 +1,4 @@
-module github.com/codingXiang/gojenkins
+module github.csnzoo.com/as397e/gojenkins
 
 go 1.13
 
