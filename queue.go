@@ -114,6 +114,10 @@ func (t *Task) GetWhy() string {
 	return t.Raw.Why
 }
 
+func (t *Task) GetBuildNumber() int64 {
+	return t.Raw.Executable.Number
+}
+
 func (t *Task) GetParameters() []parameter {
 	for _, a := range t.Raw.Actions {
 		if a.Parameters != nil {
