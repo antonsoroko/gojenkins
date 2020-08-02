@@ -503,13 +503,17 @@ func (j *Job) Invoke(files []string, skipIfRunning bool, skipIfQueued bool, para
 		base = "/build"
 	}
 	reqParams := map[string]string{}
-	buildParams := map[string]string{}
 	if securityToken != "" {
 		reqParams["token"] = securityToken
 	}
+	if cause != "" {
+		reqParams["cause"] = cause
+	}
 
-	buildParams["json"] = string(makeJson(params))
-	b, _ := json.Marshal(buildParams)
+	//buildParams := map[string]string{}
+	//buildParams["json"] = string(makeJson(params))
+	//b, _ := json.Marshal(buildParams)
+	b, _ := json.Marshal(params)
 	resp, err := j.Jenkins.Requester.PostFiles(j.Base+base, bytes.NewBuffer(b), nil, reqParams, files)
 	if err != nil {
 		return 0, err
