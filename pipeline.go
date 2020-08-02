@@ -38,7 +38,7 @@ type PipelineRun struct {
 	URLs      map[string]map[string]string `json:"_links"`
 	ID        string                       `json:"id"`
 	Name      string                       `json:"name"`
-	Status    string                       `json:'status'"`
+	Status    string                       `json:"status"`
 	StartTime int64                        `json:"startTimeMillis"`
 	EndTime   int64                        `json:"endTimeMillis"`
 	Duration  int64                        `json:"durationMillis"`
@@ -51,7 +51,7 @@ type PipelineNode struct {
 	URLs           map[string]map[string]string `json:"_links"`
 	ID             string                       `json:"id"`
 	Name           string                       `json:"name"`
-	Status         string                       `json:'status'"`
+	Status         string                       `json:"status"`
 	StartTime      int64                        `json:"startTimeMillis"`
 	Duration       int64                        `json:"durationMillis"`
 	StageFlowNodes []*PipelineNode              `json:"stageFlowNodes"`
@@ -70,7 +70,7 @@ type PipelineArtifact struct {
 	Name string `json:"name"`
 	Path string `json:"path"`
 	URL  string `json:"url"`
-	size int    `json:"size"`
+	Size int    `json:"size"`
 }
 
 type PipelineNodeLog struct {
@@ -135,7 +135,7 @@ func (pr *PipelineRun) GetPendingInputActions() (PIAs []PipelineInputAction, err
 }
 
 func (pr *PipelineRun) GetArtifacts() (artifacts []PipelineArtifact, err error) {
-	artifacts = make([]PipelineArtifact, 0, 0)
+	artifacts = make([]PipelineArtifact, 0)
 	href := pr.Base + "/wfapi/artifacts"
 	_, err = pr.Job.Jenkins.Requester.GetJSON(href, artifacts, nil)
 	if err != nil {

@@ -193,7 +193,7 @@ func (j *Job) GetLastCompletedBuild() (*Build, error) {
 }
 
 func (j *Job) GetBuildsFields(fields []string, custom interface{}) error {
-	if fields == nil || len(fields) == 0 {
+	if len(fields) == 0 {
 		return fmt.Errorf("one or more field value needs to be specified")
 	}
 	// limit overhead using builds instead of allBuilds, which returns the last 100 build
@@ -467,21 +467,26 @@ func (j *Job) InvokeSimple(params map[string]string) (int64, error) {
 	return number, nil
 }
 
-func (j *Job) Invoke(files []string, skipIfRunning bool, params map[string]string, cause string, securityToken string) (bool, error) {
-	isQueued, err := j.IsQueued()
-	if err != nil {
-		return false, err
+func (j *Job) Invoke(files []string, skipIfRunning bool, skipIfQueued bool, params map[string]string, cause string, securityToken string) (int64, error) {
+	if !skipIfQueued {
+		isQueued, err := j.IsQueued()
+		if err != nil {
+			return 0, err
+		}
+		if isQueued {
+			Error.Printf("%s is already running", j.GetName())
+			return 0, nil
+		}
 	}
-	if isQueued {
-		Error.Printf("%s is already running", j.GetName())
-		return false, nil
-	}
-	isRunning, err := j.IsRunning()
-	if err != nil {
-		return false, err
-	}
-	if isRunning && skipIfRunning {
-		return false, fmt.Errorf("Will not request new build because %s is already running", j.GetName())
+
+	if !skipIfRunning {
+		isRunning, err := j.IsRunning()
+		if err != nil {
+			return 0, err
+		}
+		if isRunning {
+			return 0, fmt.Errorf("Will not request new build because %s is already running", j.GetName())
+		}
 	}
 
 	base := "/build"
@@ -507,12 +512,29 @@ func (j *Job) Invoke(files []string, skipIfRunning bool, params map[string]strin
 	b, _ := json.Marshal(buildParams)
 	resp, err := j.Jenkins.Requester.PostFiles(j.Base+base, bytes.NewBuffer(b), nil, reqParams, files)
 	if err != nil {
-		return false, err
+		return 0, err
 	}
-	if resp.StatusCode == 200 || resp.StatusCode == 201 {
-		return true, nil
+
+	if resp.StatusCode != 200 && resp.StatusCode != 201 {
+		return 0, fmt.Errorf("Could not invoke job %q: %s", j.GetName(), resp.Status)
 	}
-	return false, errors.New(strconv.Itoa(resp.StatusCode))
+
+	location := resp.Header.Get("Location")
+	if location == "" {
+		return 0, errors.New("Don't have key \"Location\" in response of header")
+	}
+
+	u, err := url.Parse(location)
+	if err != nil {
+		return 0, err
+	}
+
+	number, err := strconv.ParseInt(path.Base(u.Path), 10, 64)
+	if err != nil {
+		return 0, err
+	}
+
+	return number, nil
 }
 
 func (j *Job) Poll() (int, error) {

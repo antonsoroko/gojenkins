@@ -136,7 +136,7 @@ func (r *Requester) SetClient(client *http.Client) *Requester {
 }
 
 //Add auth on redirect if required.
-func (r *Requester) redirectPolicyFunc(req *http.Request, via []*http.Request) error {
+func (r *Requester) RedirectPolicyFunc(req *http.Request, via []*http.Request) error {
 	if r.BasicAuth != nil {
 		req.SetBasicAuth(r.BasicAuth.Username, r.BasicAuth.Password)
 	}
