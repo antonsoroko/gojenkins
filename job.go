@@ -523,6 +523,17 @@ func (j *Job) Poll() (int, error) {
 	return response.StatusCode, nil
 }
 
+func (j *Job) BuildWithParameters(params map[string]string) error {
+	var s string
+
+	_, err := j.Jenkins.Requester.Get(j.Base+"/buildWithParameters", &s, params)
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
 func (j *Job) History() ([]*History, error) {
 	var s string
 	_, err := j.Jenkins.Requester.Get(j.Base+"/buildHistory/ajax", &s, nil)
