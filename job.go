@@ -548,17 +548,6 @@ func (j *Job) Poll(ctx context.Context) (int, error) {
 	return response.StatusCode, nil
 }
 
-func (j *Job) BuildWithParameters(ctx context.Context, params map[string]string) error {
-	var s string
-
-	_, err := j.Jenkins.Requester.Get(ctx, j.Base+"/buildWithParameters", &s, params)
-	if err != nil {
-		return err
-	}
-
-	return nil
-}
-
 func (j *Job) History(ctx context.Context) ([]*History, error) {
 	var s string
 	_, err := j.Jenkins.Requester.Get(ctx, j.Base+"/buildHistory/ajax", &s, nil)
