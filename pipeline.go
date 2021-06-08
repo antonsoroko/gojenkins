@@ -157,17 +157,6 @@ func (pr *PipelineRun) GetNode(ctx context.Context, id string) (node *PipelineNo
 	return node, nil
 }
 
-func (pr *PipelineRun) GetLog(ctx context.Context, id string) (log *PipelineNodeLog, err error) {
-	log = new(PipelineNodeLog)
-	href := pr.Base + "/execution/node/" + id + "/wfapi/log"
-	_, err = pr.Job.Jenkins.Requester.GetJSON(ctx, href, log, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return log, nil
-}
-
 func (node *PipelineNode) GetLog(ctx context.Context) (log *PipelineNodeLog, err error) {
 	log = new(PipelineNodeLog)
 	href := node.Base + "/wfapi/log"
