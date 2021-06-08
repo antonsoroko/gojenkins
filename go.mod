@@ -1,4 +1,4 @@
-module github.csnzoo.com/as397e/gojenkins
+module module github.com/bndr/gojenkins
 
 go 1.13
 
