@@ -1,9 +1,11 @@
 package gojenkins
 
 import (
-	"github.com/stretchr/testify/assert"
+	"context"
 	"os"
 	"testing"
+
+	"github.com/stretchr/testify/assert"
 )
 
 var (
@@ -12,6 +14,7 @@ var (
 	dockerID   = "dockerIDCred"
 	sshID      = "sshIdCred"
 	usernameID = "usernameIDcred"
+	fileID     = "fileIDcred"
 	scope      = "GLOBAL"
 )
 
@@ -24,16 +27,39 @@ func TestCreateUsernameCredentials(t *testing.T) {
 		Password: "pass",
 	}
 
-	err := cm.Add(domain, cred)
+	ctx := context.Background()
+	err := cm.Add(ctx, domain, cred)
 	assert.Nil(t, err, "Could not create credential")
 
 	getCred := UsernameCredentials{}
-	err = cm.GetSingle(domain, cred.ID, &getCred)
+	err = cm.GetSingle(ctx, domain, cred.ID, &getCred)
 	assert.Nil(t, err, "Could not get credential")
 
 	assert.Equal(t, cred.Scope, getCred.Scope, "Scope is not equal")
 	assert.Equal(t, cred.ID, cred.ID, "ID is not equal")
 	assert.Equal(t, cred.Username, cred.Username, "Username is not equal")
+}
+
+func TestCreateFileCredentials(t *testing.T) {
+
+	cred := FileCredentials{
+		ID:          fileID,
+		Scope:       scope,
+		Filename:    "testFile.json",
+		SecretBytes: "VGhpcyBpcyBhIHRlc3Qu\n",
+	}
+
+	ctx := context.Background()
+	err := cm.Add(ctx, domain, cred)
+	assert.Nil(t, err, "Could not create credential")
+
+	getCred := FileCredentials{}
+	err = cm.GetSingle(ctx, domain, cred.ID, &getCred)
+	assert.Nil(t, err, "Could not get credential")
+
+	assert.Equal(t, cred.Scope, getCred.Scope, "Scope is not equal")
+	assert.Equal(t, cred.ID, cred.ID, "ID is not equal")
+	assert.Equal(t, cred.Filename, cred.Filename, "Filename is not equal")
 }
 
 func TestCreateDockerCredentials(t *testing.T) {
@@ -46,11 +72,12 @@ func TestCreateDockerCredentials(t *testing.T) {
 		ClientKey:         "client key",
 	}
 
-	err := cm.Add(domain, cred)
+	ctx := context.Background()
+	err := cm.Add(ctx, domain, cred)
 	assert.Nil(t, err, "Could not create credential")
 
 	getCred := DockerServerCredentials{}
-	err = cm.GetSingle(domain, cred.ID, &getCred)
+	err = cm.GetSingle(ctx, domain, cred.ID, &getCred)
 	assert.Nil(t, err, "Could not get credential")
 
 	assert.Equal(t, cred.Scope, getCred.Scope, "Scope is not equal")
@@ -73,15 +100,16 @@ func TestCreateSSHCredentialsFullFlow(t *testing.T) {
 		},
 	}
 
-	err := cm.Add(domain, sshCred)
+	ctx := context.Background()
+	err := cm.Add(ctx, domain, sshCred)
 	assert.Nil(t, err, "Could not create credential")
 
 	sshCred.Username = "new_username"
-	err = cm.Update(domain, sshCred.ID, sshCred)
+	err = cm.Update(ctx, domain, sshCred.ID, sshCred)
 	assert.Nil(t, err, "Could not update credential")
 
 	getSSH := SSHCredentials{}
-	err = cm.GetSingle(domain, sshCred.ID, &getSSH)
+	err = cm.GetSingle(ctx, domain, sshCred.ID, &getSSH)
 	assert.Nil(t, err, "Could not get ssh credential")
 
 	assert.Equal(t, sshCred.Scope, getSSH.Scope, "Scope is not equal")
@@ -89,15 +117,16 @@ func TestCreateSSHCredentialsFullFlow(t *testing.T) {
 	assert.Equal(t, sshCred.Username, getSSH.Username, "Username is not equal")
 	assert.Equal(t, sshCred.Scope, getSSH.Scope, "Scope is not equal")
 
-	err = cm.Delete(domain, getSSH.ID)
+	err = cm.Delete(ctx, domain, getSSH.ID)
 	assert.Nil(t, err, "Could not delete credentials")
 
 }
 
 func TestMain(m *testing.M) {
 	//setup
+	ctx := context.Background()
 	jenkins := CreateJenkins(nil, "http://localhost:8080", "admin", "admin")
-	jenkins.Init()
+	jenkins.Init(ctx)
 
 	cm = CredentialsManager{J: jenkins}
 
